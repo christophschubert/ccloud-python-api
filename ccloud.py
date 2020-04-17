@@ -9,7 +9,6 @@ def call(command):
         print('error' + str(code))
 
 def call_and_parse(command):
-    print(command)
     f = os.popen('ccloud ' + command + ' -o json')
     output = f.read()
     res = f.close()
@@ -17,13 +16,12 @@ def call_and_parse(command):
         print('error' + str(res))
     return json.loads(output)
 
-def createJaas(apikey):
+def create_jaas(apikey):
     jaas_conf = """sasl.jaas.config=org.apache.kafka.common.security.plain.PlainLoginModule required username="{}" password="{}";
 ssl.endpoint.identification.algorithm=https
 security.protocol=SASL_SSL
-sasl.mechanism=PLAIN
-    """
-    return jaas_conf.format(apikey.apikey, apikey.secret)
+sasl.mechanism=PLAIN"""
+    return jaas_conf.format(apikey['key'], apikey['secret'])
 
 def list_regions():
     pass
@@ -88,7 +86,6 @@ def update_service_account(id, description):
     Update description of the service account <id>.
     """
     cmd = 'service-account update {} --description "{}"'.format(id, description)
-    print("debug: " + cmd)
     call(cmd)
 
 # API keys
@@ -107,6 +104,12 @@ def list_api_keys(resource=None, current_user=None, service_account_id=None):
     return call_and_parse(cmd)
 
 def create_api_key(resource, service_account_id=None, description=None):
+    """
+    Specify `cloud` as resource when you want an organization-wide useable API key,
+    for instance to access the metrics API.
+
+    If no service account is specified, an API with super user access will be created.
+    """
     cmd = 'api-key create --resource {}'.format(resource)
     if service_account_id:
         cmd += ' --service-account {}'.format(service_account_id)
@@ -164,40 +167,3 @@ def create_acl_entry(allow_or_deny, operations, service_account_id, resource_typ
 
 def delete_acl_entry():
     pass
-
-# convenience function
-def create_service_account_and_key(name, description):
-    pass
-
-def set_acls_for_topics(service_account_id, topic_config):
-    pass
-
-
-# print(call_and_parse('environment list'))
-# print(list_topics())
-# print(list_topics('lkc-kn3jg'))
-# print(describe_topic('test3'))
-# print(create_topic('test4', 'lkc-kn3jg', 12, {'cleanup.policy': 'compact', 'retention.bytes': 100_000}))
-
-#print(create_service_account("forConnect", "For serviceNow connect cluster"))
-#print(list_service_accounts())
-#delete_service_account(58985)
-
-# print(list_api_keys())
-# print(update_api_key('E2CQQQBZGPISP2VE', "I'm a new description"))
-# print(list_api_keys())
-# a = create_service_account("newName4", "temp description")
-# print(a)
-# update_service_account(a['id'], "a new description")
-# print(list_service_accounts())
-
-# print(list_api_keys())
-# print(list_api_keys(current_user=True))
-
-
-#print(create_acl_entry('allow', 'read, DESCRIBE', 55842, 'topic', 'connect', True))
-#create_acl_entry('allow', 'read, DESCRIBE', 55842, 'topic', 'foxy')
-#steps for onboarding Connect cluster:
-# - create service account
-# - create api-key
-# optionally: create topics
